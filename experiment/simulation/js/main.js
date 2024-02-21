@@ -1,103 +1,113 @@
-//#region CONSTANTS
-const CONTAINER = document.querySelector('body .container');
-//#endregion
+// CONSTANTS
+// ---------
 
-//#region STATE
-/** Nodes in the network. */
-var nodes = [
+/** Container for the network visualization. */
+const CONTAINER  = document.querySelector('body .container');
+/** Time interval for updating the simulation. */
+const TIME_STEP  = 10;
+/** Time error of the client/server. */
+const TIME_ERROR = 200;
+/** Additional delay before recieving a request. */
+const RECIEVE_DELAY = 100;
+/** Additional delay before responding to a request. */
+const RESPONSE_DELAY = 100;
+/** Additional delay before sending a response. */
+const TRANSMIT_DELAY = 100;
+
+
+
+
+// STATE
+// -----
+
+/** Definition of the network. */
+var graph = {
   // NTP server:
-  {type: 'server', name: 'stratum1.net'},
+  'stratum1.net': {
+    type: 'server', x: 50, y: 50,
+    links: ['as29076.asbr.router', '115.247.100.30'],
+  },
   // NTP clients:
-  {type: 'client', name: 'indus.iiit.ac.in'},
-  {type: 'client', name: 'che.iith.ac.in'},
-  {type: 'client', name: 'sharanga.hpc.bits-hyderabad.ac.in'},
-  {type: 'client', name: 'cmsd.uohyd.ac.in'},
-  {type: 'client', name: 'hpc.iitgoa.ac.in'},
-  {type: 'client', name: 'cc.iitj.ac.in'},
-  // Obtained using traceroute to stratum1.net:
-  {type: 'switch', name: 'mil-cr01-te6-2.lnd.stream-internet.net'},
-  {type: 'switch', name: 'anc-cr01-be5.204.ff.mts-internet.net'},
-  {type: 'switch', name: 'kivi-cr02-ae3.149.hel.mts-internet.net'},
-  {type: 'switch', name: 'bor-cr02-ae5.0.spb.mts-internet.net'},
-  {type: 'switch', name: 'bor-cr01-ae0.0.spb.mts-internet.net'},
-  {type: 'switch', name: 'as29076.asbr.router'},
-  {type: 'switch', name: 'vermont.msk.cloud-ix.net'},
-  {type: 'switch', name: 'host-94.198.132.184.vernet.su'},
-  // Obtained using traceroute to che.iith.ac.in:
-  {type: 'switch', name: '182.79.239.199'},
-  {type: 'switch', name: '49.44.220.188'},
-  {type: 'switch', name: '115.247.100.30'},
-  // Obtained using traceroute to sharanga.hpc.bits-hyderabad.ac.in:
-  {type: 'switch', name: '202.56.234.85'},
-  {type: 'switch', name: '182.79.203.159'},
-  {type: 'switch', name: 'hyderabad.bits-pilani.ac.in'},
-  {type: 'switch', name: '125.22.54.219'},
-  {type: 'switch', name: 'aes-static-219.54.22.125.airtel.in'},
-  // Obtained using traceroute to cmsd.uohyd.ac.in:
-  {type: 'switch', name: '14.139.69.5'},
-  // Obtained using traceroute to hpc.iitgoa.ac.in:
-  {type: 'switch', name: '59.144.94.165'},
-  // Obtained using traceroute to cc.iitj.ac.in:
-  {type: 'switch', name: '136.232.148.178'},
-];
+  'indus.iiit.ac.in': {
+    type: 'client', x: 20, y: 50,
+    links: ['as29076.asbr.router', '202.56.234.85'],
+  },
+  'che.iith.ac.in': {
+    type: 'client', x: 80, y: 50,
+    links: ['182.79.239.199', '49.44.220.188'],
+  },
+  'cc.iitj.ac.in': {
+    type: 'client', x: 40, y: 80,
+    links: ['202.56.234.85', '182.79.203.159'],
+  },
+  // Network routers:
+  'as29076.asbr.router': {
+    type: 'router', x: 30, y: 20,
+    links: ['stratum1.net', 'indus.iiit.ac.in', '182.79.239.199'],
+  },
+  '182.79.239.199': {
+    type: 'router', x: 70, y: 20,
+    links: ['as29076.asbr.router', 'che.iith.ac.in'],
+  },
+  '49.44.220.188': {
+    type: 'router', x: 70, y: 50,
+    links: ['che.iith.ac.in', '182.79.203.159'],
+  },
+  '115.247.100.30': {
+    type: 'router', x: 40, y: 60,
+    links: ['stratum1.net', '202.56.234.85', '182.79.203.159'],
+  },
+  '202.56.234.85': {
+    type: 'router', x: 20, y: 70,
+    links: ['indus.iiit.ac.in', 'cc.iitj.ac.in', '115.247.100.30'],
+  },
+  '182.79.203.159': {
+    type: 'router', x: 60, y: 70,
+    links: ['cc.iitj.ac.in', '49.44.220.188', '115.247.100.30'],
+  },
+};
 
+/** Nodes in the network. */
+var nodes = [];
 /** Links between nodes. */
 var links = [];
-//#endregion
+/** Packets in the network. */
+var packets = [];
 
 
 
 
-//#region METHODS
+// METHODS
+// -------
+
 /**
- * Find the index of the node at the given coordinates.
- * @param {Array} nodes nodes in the network
- * @param {number} bx x-coordinate of the box
- * @param {number} by y-coordinate of the box
- * @param {number} bw width of the box
- * @param {number} bh height of the box
- * @returns {number} index of the node at the given coordinates
+ * Set up the network nodes and links.
+ * @param {*} graph definition of the network
  */
-function searchNodeAt(nodes, bx, by, bw, bh) {
+function setupNetwork(graph) {
+  var names = Object.keys(graph);
+  // Populate the nodes array.
+  for (var i=0, I=names.length; i<I; ++i) {
+    var name  = names[i];
+    var {type, x, y, links: edges} = graph[name];
+    var edges = edges.map(e => names.indexOf(e));
+    var scale = type==='server'? 0.1 : 1;
+    var currentTime   = TIME_ERROR * Math.random() * scale;
+    var timeError     = type==='server'? 0 : -1;
+    var recieveDelay  = scale * RECIEVE_DELAY  * Math.random();
+    var responseDelay = scale * RESPONSE_DELAY * Math.random();
+    var transmitDelay = scale * TRANSMIT_DELAY * Math.random();
+    nodes.push({type, name, x, y, links: edges, currentTime, timeError, recieveDelay, responseDelay, transmitDelay});
+  }
+  // Populate the links array.
   for (var i=0, I=nodes.length; i<I; ++i) {
-    var {x, y, w, h} = nodes[i];
-    if (x < 0 || y < 0) continue;
-    var a = bx >= x && bx <= x+w;
-    var b = by >= y && by <= y+h;
-    var c = bx+bw >= x && bx+bw <= x+w;
-    var d = by+bh >= y && by+bh <= y+h;
-    if ((a && b) || (c && d) || (a && d) || (c && b)) return i;
+    for (var j of nodes[i].links) {
+      var distance = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y);
+      links.push({source: i, target: j, distance});
+    }
   }
-  return -1;
 }
 
-
-/**
- * Rearrange the nodes and create new links between them.
- * @param {Array} nodes nodes in the network (updated)
- * @param {Array} links links between nodes (updated)
- */
-function reorganizeNetwork(nodes, links) {
-  // Initialize nodes.
-  for (var n of nodes) {
-    n.x = -1;
-    n.y = -1;
-    n.w = n.type==='server'? 5 : (n.type==='client'? 5 : 3);
-    n.h = n.type==='server'? 5 : (n.type==='client'? 5 : 3);
-  }
-  // Rearrange nodes in the network.
-  for (var n of nodes) {
-    do {
-      var px = Math.round(10 + 80 * Math.random());
-      var py = Math.round(10 + 80 * Math.random());
-      var i  = searchNodeAt(nodes, px, py, n.w, n.h);
-      if (i>=0) console.log(i, 'collides with', nodes.indexOf(n), 'at', px, py, n);
-    } while (i>=0);
-    n.x = px;
-    n.y = py;
-  }
-  // Create new links between nodes.
-}
 
 /**
  * Draw nodes in the network.
@@ -118,7 +128,6 @@ function drawNodes(nodes) {
 // Initialize simulation environment
 function initSimulation() {
   // Create node objects and add them to the nodes array
-  reorganizeNetwork(nodes, links);
   drawNodes(nodes);
   // Create NTP server object
   createNtpServer();
@@ -166,4 +175,3 @@ function handleNodeClick(nodeId) {
 window.onload = function() {
     initSimulation();
 };
-//#endregion
