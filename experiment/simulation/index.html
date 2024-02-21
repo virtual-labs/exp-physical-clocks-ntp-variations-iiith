@@ -1,13 +1,46 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<!-- Add CSS at the head of HTML file -->
-    <link rel="stylesheet" href="./css/main.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NTP Simulation</title>
+<link rel="stylesheet" href="./css/main.css">
 </head>
 <body>
-		<!-- Your code goes here-->
+<!-- Simulation Environment -->
+<div class="container">
+  <!-- <h1>NTP Simulation</h1> -->
+  <!-- Nodes -->
+  <!-- <div class="node" id="node1"></div>
+  <div class="node" id="node2"></div>
+  <div class="node" id="node3"></div>
+  <div class="node" id="node4"></div>
+  <div class="node" id="node5"></div> -->
+  <!-- NTP Server -->
+  <div id="ntpServer"></div>
+  <!-- Links connecting nodes -->
+  <svg id="links" width="100%" height="100%">
+    <line id="link1" x1="1%" y1="1%" x2="10%" y2="10%" style="stroke:red; stroke-width:2"></line>
+    <line id="link2"></line>
+    <line id="link3"></line>
+    <line id="link4"></line>
+    <line id="link5"></line>
+  </svg>
+</div>
 
-	<!-- Add JS at the bottom of HTML file --> 
-        <script src="./js/main.js"></script>
+<!-- Controls -->
+<div class="controls">
+  <button onclick="startSimulation()">Start Simulation</button>
+  <button onclick="adjustParameters()">Adjust Parameters</button>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<script src="./js/main.js"></script>
 </body>
 </html>
+
+
+<!-- <a href="https://www.flaticon.com/free-icons/computer" title="computer icons">Computer icons created by Freepik - Flaticon</a> -->
+<!-- <a href="https://www.flaticon.com/free-icons/mac" title="mac icons">Mac icons created by xnimrodx - Flaticon</a> -->
+<!-- <a href="https://www.flaticon.com/free-icons/hub" title="hub icons">Hub icons created by Freepik - Flaticon</a> -->

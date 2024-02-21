@@ -1,1 +1,90 @@
-/* You CSS goes in here */
+/* Use the entire viewport. */
+body {
+  margin: 0;
+}
+
+/* Simulation environment. */
+.container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  background-color: #f0f0f0;
+}
+
+/* Network nodes. */
+.server, .client, .switch {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background-size: cover;
+  background-image: url('../images/client-128.png');
+}
+.server {
+  width: 80px;
+  height: 80px;
+  background-image: url('../images/server-128.png');
+}
+.switch {
+  width: 30px;
+  height: 30px;
+  background-image: url('../images/switch-128.png');
+}
+
+
+#links {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+line {
+  stroke: #000;
+  stroke-width: 1;
+}
+
+#link1 {
+  x1: 12.5%;
+  y1: 12.5%;
+  x2: 32.5%;
+  y2: 32.5%;
+}
+
+#link2 {
+  x1: 32.5%;
+  y1: 32.5%;
+  x2: 52.5%;
+  y2: 52.5%;
+}
+
+#link3 {
+  x1: 52.5%;
+  y1: 52.5%;
+  x2: 32.5%;
+  y2: 32.5%;
+}
+
+#link4 {
+  x1: 32.5%;
+  y1: 32.5%;
+  x2: 12.5%;
+  y2: 12.5%;
+}
+
+#link5 {
+  x1: 52.5%;
+  y1: 52.5%;
+  x2: 72.5%;
+  y2: 32.5%;
+}
+
+.controls {
+  margin-top: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
