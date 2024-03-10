@@ -175,3 +175,113 @@ function handleNodeClick(nodeId) {
 window.onload = function() {
     initSimulation();
 };
+
+
+
+
+function layoutNetwork(graph) {
+  var N = graphOrder(graph);
+  var M = graphSize(graph);
+  var posx = new Array(N).fill(0);
+  var posy = new Array(N).fill(0);
+  var velx = new Array(N).fill(0);
+  var vely = new Array(N).fill(0);
+  var frcx = new Array(N).fill(0);
+  var frcy = new Array(N).fill(0);
+  var masses = new Array(N).fill(0);
+  var charges = new Array(N).fill(0);
+  var sources = new Array(M).fill(0);
+  var targets = new Array(M).fill(0);
+}
+
+
+
+/**
+ * Get the number of nodes in the network.
+ * @param {object} graph definition of the network
+ * @returns {number} number of nodes in the network
+ */
+function graphOrder(graph) {
+  return Object.keys(graph).length;
+}
+
+
+/**
+ * Get the number of links in the network.
+ * @param {object} graph definition of the network
+ * @returns {number} number of links in the network
+ */
+function graphSize(graph) {
+  var size = 0;
+  for (var node in graph)
+    size += graph[node].links.length;
+  return size;
+}
+
+
+
+
+// TODO: Handle forces from screen edges.
+/**
+ * Perform a force-directed iteration on the network.
+ * @param {number[]} posx x-coordinates of the nodes
+ * @param {number[]} posy y-coordinates of the nodes
+ * @param {number[]} velx x-velocities of the nodes
+ * @param {number[]} vely y-velocities of the nodes
+ * @param {number[]} masses masses of the nodes
+ * @param {number[]} charges charges of the nodes
+ * @param {number[]} sources sources of the links
+ * @param {number[]} targets targets of the links
+ * @param {number} kc coulomb constant
+ * @param {number} ks spring constant
+ * @param {number} dt time step
+ */
+function forceDirectedIteration(posx, posy, velx, vely, frcx, frcy, masses, charges, sources, targets, kc, ks, dt) {
+  var N = posx.length;
+  var M = sources.length;
+  // Initialize forces to zero.
+  frcx.fill(0);
+  frcy.fill(0);
+  // Compute forces due to charges.
+  for (var i=0; i<N; ++i) {
+    for (var j=i+1; j<N; ++j) {
+      if (i===j) continue;
+      var dx = posx[j] - posx[i];
+      var dy = posy[j] - posy[i];
+      var d2 = dx*dx + dy*dy;
+      var d  = Math.sqrt(d2);
+      var f  = kc * charges[i] * charges[j] / d2;  // Coulomb's law
+      var fx = f * dx / d;
+      var fy = f * dy / d;
+      frcx[i] -= fx;
+      frcy[i] -= fy;
+      frcx[j] += fx;
+      frcy[j] += fy;
+    }
+  }
+  // Compute forces due to springs.
+  for (var i=0; i<M; ++i) {
+    var u  = sources[i];
+    var v  = targets[i];
+    var dx = posx[v] - posx[u];
+    var dy = posy[v] - posy[u];
+    var d2 = dx*dx + dy*dy;
+    var d  = Math.sqrt(d2);
+    var f  = ks * d;  // Hooke's law
+    var fx = f * dx / d;
+    var fy = f * dy / d;
+    frcx[u] -= fx;
+    frcy[u] -= fy;
+    frcx[v] += fx;
+    frcy[v] += fy;
+  }
+  // Update velocities and positions.
+  for (var i=0; i<N; ++i) {
+    velx[i] += frcx[i] * dt / masses[i];
+    vely[i] += frcy[i] * dt / masses[i];
+  }
+  for (var i=0; i<N; ++i) {
+    posx[i] += velx[i] * dt;
+    posy[i] += vely[i] * dt;
+  }
+}
