@@ -3,21 +3,63 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NTP Simulation</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/barecss@1.1.1/css/bare.min.css">
 <link rel="stylesheet" href="./css/main.css">
+<title>NTP Simulation</title>
 </head>
 <body>
 <!-- Simulation Environment -->
-<div class="container">
+<section class="simulation">
   <canvas id="arena" width="640" height="480"></canvas>
-  <div id="info"></div>
 </div>
 
 <!-- Controls -->
-<div class="controls">
-  <button onclick="startSimulation()">Start Simulation</button>
+<section id="controls">
+<form>
+  <grid>
+  <div col="1/2">
+    <h4>Client Parameters</h4>
+    <label>Initial time offset of the client (ms)</label>
+    <input type="number" name="client-offset" placeholder="0">
+    <label>Drift rate of the client (ppm)</label>
+    <input type="number" name="client-drift-rate" placeholder="0">
+    <label>Delay at client before sending a request (ms)</label>
+    <input type="number" name="client-transmit-delay" placeholder="0">
+    <label>Delay at client before recieving a response (ms)</label>
+    <input type="number" name="client-recieve-delay" placeholder="0">
+    <label>Synchronization interval (ms)</label>
+    <input type="number" name="client-sync-interval" placeholder="1000">
+  </div>
+  <div col="1/2">
+    <h4>NTP Server Parameters</h4>
+    <label>Time error of the server (ms)</label>
+    <input type="number" name="server-error" placeholder="0">
+    <label>Delay at server before recieving a request (ms)</label>
+    <input type="number" name="server-recieve-delay" placeholder="0">
+    <label>Delay at server before responding to a request (ms)</label>
+    <input type="number" name="server-response-delay" placeholder="0">
+    <label>Delay at server before sending a response (ms)</label>
+    <input type="number" name="server-transmit-delay" placeholder="0">
+  </div>
+  <div col="1/2">
+    <h4>Network and Simulation Parameters</h4>
+    <label>Round trip time (ms)</label>
+    <input type="number" name="network-trip" placeholder="100">
+    <label>Round trip asymmetry variation (ms)</label>
+    <input type="number" name="network-asymmetry" placeholder="20">
+  </div>
+  <div col="1/2">
+    <h4>...</h4>
+    <label>Round trip time variation (ms)</label>
+    <input type="number" name="network-trip-variation" placeholder="20">
+    <label>Simulation speed (ms/s)</label>
+    <input type="number" name="simulation-speed" placeholder="100">
+  </div>
+  </grid>
+  <button primary onclick="startSimulation()">Start Simulation</button>
   <button onclick="adjustParameters()">Adjust Parameters</button>
-</div>
+</form>
+</section>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>

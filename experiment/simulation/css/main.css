@@ -4,20 +4,14 @@ body {
 }
 
 /* Simulation environment. */
-.container {
+#simulation {
   position: relative;
   width: 100%;
   height: 100vh;
 }
-.container canvas {
+#simulation canvas {
   width: 80%;
   display: inline-block;
-}
-.container #info {
-  width: 20%;
-  display: inline-block;
-  vertical-align: top;
-  padding: 20px;
 }
 
 /* Network nodes. */
