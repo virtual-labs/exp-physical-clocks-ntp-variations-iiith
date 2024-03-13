@@ -1,78 +1,35 @@
 // CONSTANTS
 // ---------
 
-/** Container for the network visualization. */
-const CONTAINER  = document.querySelector('body .container');
-/** Time interval for updating the simulation. */
-const TIME_STEP  = 10;
-/** Time error of the client/server. */
-const TIME_ERROR = 200;
-/** Additional delay before recieving a request. */
-const RECIEVE_DELAY = 100;
-/** Additional delay before responding to a request. */
-const RESPONSE_DELAY = 100;
-/** Additional delay before sending a response. */
-const TRANSMIT_DELAY = 100;
-
+const CONTROLS         = document.querySelector('#controls form');
+const START_SIMULATION = document.querySelector('#start-simulation');
+const STOP_SIMILATION  = document.querySelector('#stop-simulation');
+const PARAMETERS = {
+  // Client Parameters.
+  clientOffset: 0,
+  clientDriftRate: 0,
+  clientTransmitDelay: 0,
+  clientRecieveDelay: 0,
+  clientSyncInterval: 1000,
+  // NTP Server Parameters.
+  serverError: 0,
+  serverRecieveDelay: 0,
+  serverResponseDelay: 0,
+  serverTransmitDelay: 0,
+  // Network and Simulation Parameters.
+  networkTrip: 100,
+  networkAsymmetry: 20,
+  networkTripVariation: 20,
+  simulationSpeed: 100,
+};
 
 
 
 // STATE
 // -----
 
-/** Definition of the network. */
-var graph = {
-  // NTP server:
-  'stratum1.net': {
-    type: 'server', x: 50, y: 50,
-    links: ['as29076.asbr.router', '115.247.100.30'],
-  },
-  // NTP clients:
-  'indus.iiit.ac.in': {
-    type: 'client', x: 20, y: 50,
-    links: ['as29076.asbr.router', '202.56.234.85'],
-  },
-  'che.iith.ac.in': {
-    type: 'client', x: 80, y: 50,
-    links: ['182.79.239.199', '49.44.220.188'],
-  },
-  'cc.iitj.ac.in': {
-    type: 'client', x: 40, y: 80,
-    links: ['202.56.234.85', '182.79.203.159'],
-  },
-  // Network routers:
-  'as29076.asbr.router': {
-    type: 'router', x: 30, y: 20,
-    links: ['stratum1.net', 'indus.iiit.ac.in', '182.79.239.199'],
-  },
-  '182.79.239.199': {
-    type: 'router', x: 70, y: 20,
-    links: ['as29076.asbr.router', 'che.iith.ac.in'],
-  },
-  '49.44.220.188': {
-    type: 'router', x: 70, y: 50,
-    links: ['che.iith.ac.in', '182.79.203.159'],
-  },
-  '115.247.100.30': {
-    type: 'router', x: 40, y: 60,
-    links: ['stratum1.net', '202.56.234.85', '182.79.203.159'],
-  },
-  '202.56.234.85': {
-    type: 'router', x: 20, y: 70,
-    links: ['indus.iiit.ac.in', 'cc.iitj.ac.in', '115.247.100.30'],
-  },
-  '182.79.203.159': {
-    type: 'router', x: 60, y: 70,
-    links: ['cc.iitj.ac.in', '49.44.220.188', '115.247.100.30'],
-  },
-};
-
-/** Nodes in the network. */
-var nodes = [];
-/** Links between nodes. */
-var links = [];
-/** Packets in the network. */
-var packets = [];
+var parameters = Object.assign({}, PARAMETERS);
+var simulation = {};
 
 
 
@@ -80,208 +37,63 @@ var packets = [];
 // METHODS
 // -------
 
-/**
- * Set up the network nodes and links.
- * @param {*} graph definition of the network
- */
-function setupNetwork(graph) {
-  var names = Object.keys(graph);
-  // Populate the nodes array.
-  for (var i=0, I=names.length; i<I; ++i) {
-    var name  = names[i];
-    var {type, x, y, links: edges} = graph[name];
-    var edges = edges.map(e => names.indexOf(e));
-    var scale = type==='server'? 0.1 : 1;
-    var currentTime   = TIME_ERROR * Math.random() * scale;
-    var timeError     = type==='server'? 0 : -1;
-    var recieveDelay  = scale * RECIEVE_DELAY  * Math.random();
-    var responseDelay = scale * RESPONSE_DELAY * Math.random();
-    var transmitDelay = scale * TRANSMIT_DELAY * Math.random();
-    nodes.push({type, name, x, y, links: edges, currentTime, timeError, recieveDelay, responseDelay, transmitDelay});
-  }
-  // Populate the links array.
-  for (var i=0, I=nodes.length; i<I; ++i) {
-    for (var j of nodes[i].links) {
-      var distance = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y);
-      links.push({source: i, target: j, distance});
-    }
-  }
-}
-
-
-/**
- * Draw nodes in the network.
- * @param {Array} nodes nodes in the network
- */
-function drawNodes(nodes) {
-  for (var n of nodes) {
-    var e = document.createElement('div');
-    e.className  = n.type;
-    e.title      = n.name;
-    e.style.left = `${n.x}%`;
-    e.style.top  = `${n.y}%`;
-    CONTAINER.appendChild(e);
-  }
-}
-
-
-// Initialize simulation environment
-function initSimulation() {
-  // Create node objects and add them to the nodes array
-  drawNodes(nodes);
-  // Create NTP server object
-  createNtpServer();
-}
-
-// Function to create NTP server object
-function createNtpServer() {
-    ntpServer = {
-        element: document.getElementById('ntpServer'),
-        // Add other properties as needed
-    };
-}
-
-// Function to start the simulation
+// Called when "Start Simulation" button is clicked.
 function startSimulation() {
-    // Animate node interactions, NTP communication, etc.
-    animateNodes();
-    animateNtpServer();
+  adjustParameters();
+  var s = simulation;
+  s.paused  = s.running? !s.paused : false;
+  s.running = true;
+  updateButtons();
 }
 
-// Function to animate node interactions
-function animateNodes() {
-    // Use Anime.js to animate node interactions
-    // For example, moving nodes, changing colors, etc.
+
+// Called when "Stop Simulation" button is clicked.
+function stopSimulation() {
+  var s = simulation;
+  s.running = false;
+  s.paused  = false;
+  updateButtons();
 }
 
-// Function to animate NTP server
-function animateNtpServer() {
-    // Use Anime.js to animate NTP server behavior
-    // For example, transmitting time updates to nodes, adjusting clock, etc.
+
+// Update buttons based on the current state of the simulation.
+function updateButtons() {
+  var s = simulation;
+  START_SIMULATION.textContent = !s.running? 'Start Simulation' : s.paused? 'Resume Simulation' : 'Pause Simulation';
+  STOP_SIMILATION.disabled     = !s.running;
 }
 
-// Function to adjust simulation parameters
+
+// Called when "Adjust Parameters" button is clicked.
 function adjustParameters() {
-    // Allow users to adjust simulation parameters
-    // For example, network delay, packet loss, etc.
-}
-
-// Function to handle user interactions with nodes
-function handleNodeClick(nodeId) {
-    // Handle user interactions with nodes (e.g., display node information)
-}
-
-// Initialize simulation environment when the page is loaded
-window.onload = function() {
-    initSimulation();
-};
-
-
-
-
-function layoutNetwork(graph) {
-  var N = graphOrder(graph);
-  var M = graphSize(graph);
-  var posx = new Array(N).fill(0);
-  var posy = new Array(N).fill(0);
-  var velx = new Array(N).fill(0);
-  var vely = new Array(N).fill(0);
-  var frcx = new Array(N).fill(0);
-  var frcy = new Array(N).fill(0);
-  var masses = new Array(N).fill(0);
-  var charges = new Array(N).fill(0);
-  var sources = new Array(M).fill(0);
-  var targets = new Array(M).fill(0);
+  var p    = parameters;
+  var data = new FormData(CONTROLS);
+  p.clientOffset          = parseFloat(data.get('client-offset'))           || PARAMETERS.clientOffset;
+  p.clientDriftRate       = parseFloat(data.get('client-drift-rate'))       || PARAMETERS.clientDriftRate;
+  p.clientTransmitDelay   = parseFloat(data.get('client-transmit-delay'))   || PARAMETERS.clientTransmitDelay;
+  p.clientRecieveDelay    = parseFloat(data.get('client-recieve-delay'))    || PARAMETERS.clientRecieveDelay;
+  p.clientSyncInterval    = parseFloat(data.get('client-sync-interval'))    || PARAMETERS.clientSyncInterval;
+  p.serverError           = parseFloat(data.get('server-error'))            || PARAMETERS.serverError;
+  p.serverRecieveDelay    = parseFloat(data.get('server-recieve-delay'))    || PARAMETERS.serverRecieveDelay;
+  p.serverResponseDelay   = parseFloat(data.get('server-response-delay'))   || PARAMETERS.serverResponseDelay;
+  p.serverTransmitDelay   = parseFloat(data.get('server-transmit-delay'))   || PARAMETERS.serverTransmitDelay;
+  p.networkTrip           = parseFloat(data.get('network-trip'))            || PARAMETERS.networkTrip;
+  p.networkAsymmetry      = parseFloat(data.get('network-asymmetry'))       || PARAMETERS.networkAsymmetry;
+  p.networkTripVariation  = parseFloat(data.get('network-trip-variation'))  || PARAMETERS.networkTripVariation;
+  p.simulationSpeed       = parseFloat(data.get('simulation-speed'))        || PARAMETERS.simulationSpeed;
+  return false;
 }
 
 
-
-/**
- * Get the number of nodes in the network.
- * @param {object} graph definition of the network
- * @returns {number} number of nodes in the network
- */
-function graphOrder(graph) {
-  return Object.keys(graph).length;
+// Called when "Controls" form is submitted.
+function onControls(e) {
+  e.preventDefault();
+  return false;
 }
 
 
-/**
- * Get the number of links in the network.
- * @param {object} graph definition of the network
- * @returns {number} number of links in the network
- */
-function graphSize(graph) {
-  var size = 0;
-  for (var node in graph)
-    size += graph[node].links.length;
-  return size;
+// Main function.
+function main() {
+  CONTROLS.addEventListener('submit', onControls);
 }
-
-
-
-
-// TODO: Handle forces from screen edges.
-/**
- * Perform a force-directed iteration on the network.
- * @param {number[]} posx x-coordinates of the nodes
- * @param {number[]} posy y-coordinates of the nodes
- * @param {number[]} velx x-velocities of the nodes
- * @param {number[]} vely y-velocities of the nodes
- * @param {number[]} masses masses of the nodes
- * @param {number[]} charges charges of the nodes
- * @param {number[]} sources sources of the links
- * @param {number[]} targets targets of the links
- * @param {number} kc coulomb constant
- * @param {number} ks spring constant
- * @param {number} dt time step
- */
-function forceDirectedIteration(posx, posy, velx, vely, frcx, frcy, masses, charges, sources, targets, kc, ks, dt) {
-  var N = posx.length;
-  var M = sources.length;
-  // Initialize forces to zero.
-  frcx.fill(0);
-  frcy.fill(0);
-  // Compute forces due to charges.
-  for (var i=0; i<N; ++i) {
-    for (var j=i+1; j<N; ++j) {
-      if (i===j) continue;
-      var dx = posx[j] - posx[i];
-      var dy = posy[j] - posy[i];
-      var d2 = dx*dx + dy*dy;
-      var d  = Math.sqrt(d2);
-      var f  = kc * charges[i] * charges[j] / d2;  // Coulomb's law
-      var fx = f * dx / d;
-      var fy = f * dy / d;
-      frcx[i] -= fx;
-      frcy[i] -= fy;
-      frcx[j] += fx;
-      frcy[j] += fy;
-    }
-  }
-  // Compute forces due to springs.
-  for (var i=0; i<M; ++i) {
-    var u  = sources[i];
-    var v  = targets[i];
-    var dx = posx[v] - posx[u];
-    var dy = posy[v] - posy[u];
-    var d2 = dx*dx + dy*dy;
-    var d  = Math.sqrt(d2);
-    var f  = ks * d;  // Hooke's law
-    var fx = f * dx / d;
-    var fy = f * dy / d;
-    frcx[u] -= fx;
-    frcy[u] -= fy;
-    frcx[v] += fx;
-    frcy[v] += fy;
-  }
-  // Update velocities and positions.
-  for (var i=0; i<N; ++i) {
-    velx[i] += frcx[i] * dt / masses[i];
-    vely[i] += frcy[i] * dt / masses[i];
-  }
-  for (var i=0; i<N; ++i) {
-    posx[i] += velx[i] * dt;
-    posy[i] += vely[i] * dt;
-  }
-}
+main();

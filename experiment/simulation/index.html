@@ -9,9 +9,8 @@
 </head>
 <body>
 <!-- Simulation Environment -->
-<section class="simulation">
-  <canvas id="arena" width="640" height="480"></canvas>
-</div>
+<section id="simulation">
+</section>
 
 <!-- Controls -->
 <section id="controls">
@@ -56,13 +55,13 @@
     <input type="number" name="simulation-speed" placeholder="100">
   </div>
   </grid>
-  <button primary onclick="startSimulation()">Start Simulation</button>
-  <button onclick="adjustParameters()">Adjust Parameters</button>
+  <button id="start-simulation" primary onclick="startSimulation()">Start Simulation</button>
+  <button id="stop-simulation" disabled onclick="stopSimulation()">Stop Simulation</button>
+  <button id="adjust-parameters" onclick="adjustParameters()">Adjust Parameters</button>
 </form>
 </section>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 <script src="./js/main.js"></script>
 </body>
 </html>
@@ -71,3 +70,4 @@
 <!-- <a href="https://www.flaticon.com/free-icons/computer" title="computer icons">Computer icons created by Freepik - Flaticon</a> -->
 <!-- <a href="https://www.flaticon.com/free-icons/mac" title="mac icons">Mac icons created by xnimrodx - Flaticon</a> -->
 <!-- <a href="https://www.flaticon.com/free-icons/hub" title="hub icons">Hub icons created by Freepik - Flaticon</a> -->
+<!-- <a href="https://www.flaticon.com/free-icons/packet" title="packet icons">Packet icons created by Uniconlabs - Flaticon</a> -->
