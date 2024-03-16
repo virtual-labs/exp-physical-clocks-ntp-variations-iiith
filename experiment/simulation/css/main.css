@@ -3,6 +3,7 @@ body {
   margin: 0;
 }
 
+
 /* Simulation environment. */
 #simulation {
   width: 100%;
@@ -10,27 +11,64 @@ body {
   background: url('https://i.imgur.com/gvoJosL.jpg') no-repeat;
   background-size: 100% 100%;
   background-position: center center;
+  overflow: hidden;
 }
 
-/* Network nodes. */
-.hidden {
-  display: none;
+#buttons {
+  padding: 1rem 0 6rem 0;
 }
 
-.server, .client, .router {
+
+/** Client and server. */
+#client {
   position: absolute;
-  width: 60px;
-  height: 60px;
-  background-size: cover;
-  background-image: url('../images/client-128.png');
+  top: 18%;
+  left: 3%;
+  width: 5vw;
+  height: 7vw;
 }
-.server {
-  width: 80px;
-  height: 80px;
-  background-image: url('../images/server-128.png');
+#server {
+  position: absolute;
+  top: 20%;
+  right: 2%;
+  width: 5vw;
+  height: 7vw;
 }
-.router {
-  width: 30px;
-  height: 30px;
-  background-image: url('../images/router-128.png');
+#client > .time, #server > .time {
+  text-align: center;
+  padding-top: 140%;
+}
+
+
+/* Packet animation. */
+@keyframes send {
+  from { left: 10%; }
+  to   { left: 90%; }
+}
+
+@keyframes recieve {
+  from { left: 90%; }
+  to   { left: 10%; }
+}
+
+.send-packet > div, .recieve-packet > div {
+  text-align: center;
+}
+
+.send-packet {
+  position: absolute;
+  bottom: 66%;
+  left: 10%;
+  width: 4vh;
+  height: 4vh;
+  animation: send 4s linear forwards;
+}
+
+.recieve-packet {
+  position: absolute;
+  top: 44%;
+  left: 90%;
+  width: 4vh;
+  height: 4vh;
+  animation: recieve 4s linear forwards;
 }

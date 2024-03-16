@@ -10,54 +10,74 @@
 <body>
 <!-- Simulation Environment -->
 <section id="simulation">
+  <div id="client">
+    <div class="time">20 ms</div>
+  </div>
+  <div id="server">
+    <div class="time">20 ms</div>
+  </div>
+  <!-- <div class="send-packet">
+    <div>123</div>
+    <img src="./images/packet-64.png">
+  </div>
+  <div class="recieve-packet">
+    <img src="./images/packet-64.png">
+    <div>123</div>
+  </div> -->
 </section>
 
 <!-- Controls -->
 <section id="controls">
 <form>
+  <div id="buttons">
+    <button id="start-simulation" primary onclick="onStartSimulation()">Start Simulation</button>
+    <button id="stop-simulation" disabled onclick="onStopSimulation()">Stop Simulation</button>
+    <button id="adjust-parameters" onclick="onAdjustParameters()">Adjust Parameters</button>
+    <button id="send-packet" onclick="onSendPacket()">Send Packet</button>
+    <button id="synchronize" onclick="onSynchronize()">Synchronize Now</button>
+  </div>
   <grid>
-  <div col="1/2">
-    <h4>Client Parameters</h4>
+    <div col="1/2">
+      <h4>Network and Simulation Parameters</h4>
+      <label>Round trip time (ms)</label>
+      <input type="number" name="network-trip" placeholder="100">
+      <label>Round trip asymmetry variation (ms)</label>
+      <input type="number" name="network-asymmetry" placeholder="20">
+    </div>
+    <div col="1/2">
+      <h4>...</h4>
+      <label>Round trip time variation (ms)</label>
+      <input type="number" name="network-trip-variation" placeholder="20">
+      <label>Simulation speed (ms/s)</label>
+      <input type="number" name="simulation-speed" placeholder="10">
+    </div>
+    <div col="1/2">
+    <h4>NTP Client Parameters</h4>
     <label>Initial time offset of the client (ms)</label>
     <input type="number" name="client-offset" placeholder="0">
-    <label>Drift rate of the client (ppm)</label>
-    <input type="number" name="client-drift-rate" placeholder="0">
-    <label>Delay at client before sending a request (ms)</label>
-    <input type="number" name="client-transmit-delay" placeholder="0">
-    <label>Delay at client before recieving a response (ms)</label>
-    <input type="number" name="client-recieve-delay" placeholder="0">
     <label>Synchronization interval (ms)</label>
     <input type="number" name="client-sync-interval" placeholder="1000">
+    <label>Synchronization packet interval (ms)</label>
+    <input type="number" name="client-packet-interval" placeholder="10">
+  </div>
+  <div col="1/2">
+    <h4>...</h4>
+    <label>Drift rate of the client (ppm)</label>
+    <input type="number" name="client-drift-rate" placeholder="0">
+    <label>Synchronization period (ms)</label>
+    <input type="number" name="client-sync-period" placeholder="100">
   </div>
   <div col="1/2">
     <h4>NTP Server Parameters</h4>
     <label>Time error of the server (ms)</label>
     <input type="number" name="server-error" placeholder="0">
-    <label>Delay at server before recieving a request (ms)</label>
-    <input type="number" name="server-recieve-delay" placeholder="0">
-    <label>Delay at server before responding to a request (ms)</label>
-    <input type="number" name="server-response-delay" placeholder="0">
-    <label>Delay at server before sending a response (ms)</label>
-    <input type="number" name="server-transmit-delay" placeholder="0">
-  </div>
-  <div col="1/2">
-    <h4>Network and Simulation Parameters</h4>
-    <label>Round trip time (ms)</label>
-    <input type="number" name="network-trip" placeholder="100">
-    <label>Round trip asymmetry variation (ms)</label>
-    <input type="number" name="network-asymmetry" placeholder="20">
   </div>
   <div col="1/2">
     <h4>...</h4>
-    <label>Round trip time variation (ms)</label>
-    <input type="number" name="network-trip-variation" placeholder="20">
-    <label>Simulation speed (ms/s)</label>
-    <input type="number" name="simulation-speed" placeholder="100">
+    <label>Delay at server before responding to a request (ms)</label>
+    <input type="number" name="server-response-delay" placeholder="0">
   </div>
   </grid>
-  <button id="start-simulation" primary onclick="startSimulation()">Start Simulation</button>
-  <button id="stop-simulation" disabled onclick="stopSimulation()">Stop Simulation</button>
-  <button id="adjust-parameters" onclick="adjustParameters()">Adjust Parameters</button>
 </form>
 </section>
 </div>
