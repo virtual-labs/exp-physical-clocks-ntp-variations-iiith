@@ -10,31 +10,23 @@
 <body>
 <!-- Simulation Environment -->
 <section id="simulation">
-  <div id="client">
-    <div class="time">20 ms</div>
-  </div>
-  <div id="server">
-    <div class="time">20 ms</div>
-  </div>
-  <!-- <div class="send-packet">
-    <div>123</div>
-    <img src="./images/packet-64.png">
-  </div>
-  <div class="recieve-packet">
-    <img src="./images/packet-64.png">
-    <div>123</div>
-  </div> -->
+  <canvas id="arena" width="1024" height="320"></canvas>
+  <audio id="start-audio" src="https://ia801000.us.archive.org/35/items/windowsxpstartup_201910/Windows%20XP%20Startup.mp3"></audio>
+  <audio id="stop-audio" src="https://ia801000.us.archive.org/35/items/windowsxpstartup_201910/Windows%20XP%20Shutdown.mp3"></audio>
+  <audio id="pause-audio" src="https://ia801000.us.archive.org/35/items/windowsxpstartup_201910/notify.mp3"></audio>
+  <audio id="adjust-audio" src="https://ia801000.us.archive.org/35/items/windowsxpstartup_201910/chimes.mp3"></audio>
+  <audio id="synchronize-audio" src="https://ia801000.us.archive.org/35/items/windowsxpstartup_201910/Windows%20XP%20Logon%20Sound.mp3"></audio>
 </section>
 
 <!-- Controls -->
 <section id="controls">
 <form>
   <div id="buttons">
-    <button id="start-simulation" primary onclick="onStartSimulation()">Start Simulation</button>
-    <button id="stop-simulation" disabled onclick="onStopSimulation()">Stop Simulation</button>
+    <button id="start-simulation" primary onclick="onStartSimulation()">Pause Simulation</button>
+    <button id="stop-simulation" onclick="onStopSimulation()">Stop Simulation</button>
     <button id="adjust-parameters" onclick="onAdjustParameters()">Adjust Parameters</button>
-    <button id="send-packet" onclick="onSendPacket()">Send Packet</button>
     <button id="synchronize" onclick="onSynchronize()">Synchronize Now</button>
+    <button id="send-packet" onclick="onSendPacket()">Send Packet</button>
   </div>
   <grid>
     <div col="1/2">
@@ -54,7 +46,7 @@
     <div col="1/2">
     <h4>NTP Client Parameters</h4>
     <label>Initial time offset of the client (ms)</label>
-    <input type="number" name="client-offset" placeholder="0">
+    <input type="number" name="client-offset" placeholder="10">
     <label>Synchronization interval (ms)</label>
     <input type="number" name="client-sync-interval" placeholder="1000">
     <label>Synchronization packet interval (ms)</label>
@@ -75,7 +67,7 @@
   <div col="1/2">
     <h4>...</h4>
     <label>Delay at server before responding to a request (ms)</label>
-    <input type="number" name="server-response-delay" placeholder="0">
+    <input type="number" name="server-response-delay" placeholder="10">
   </div>
   </grid>
 </form>

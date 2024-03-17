@@ -5,70 +5,13 @@ body {
 
 
 /* Simulation environment. */
-#simulation {
+#simulation > canvas {
   width: 100%;
-  height: 20vw;
-  background: url('https://i.imgur.com/gvoJosL.jpg') no-repeat;
-  background-size: 100% 100%;
-  background-position: center center;
-  overflow: hidden;
+  height: 24rem;
 }
 
+
+/** Controls. */
 #buttons {
-  padding: 1rem 0 6rem 0;
-}
-
-
-/** Client and server. */
-#client {
-  position: absolute;
-  top: 18%;
-  left: 3%;
-  width: 5vw;
-  height: 7vw;
-}
-#server {
-  position: absolute;
-  top: 20%;
-  right: 2%;
-  width: 5vw;
-  height: 7vw;
-}
-#client > .time, #server > .time {
-  text-align: center;
-  padding-top: 140%;
-}
-
-
-/* Packet animation. */
-@keyframes send {
-  from { left: 10%; }
-  to   { left: 90%; }
-}
-
-@keyframes recieve {
-  from { left: 90%; }
-  to   { left: 10%; }
-}
-
-.send-packet > div, .recieve-packet > div {
-  text-align: center;
-}
-
-.send-packet {
-  position: absolute;
-  bottom: 66%;
-  left: 10%;
-  width: 4vh;
-  height: 4vh;
-  animation: send 4s linear forwards;
-}
-
-.recieve-packet {
-  position: absolute;
-  top: 44%;
-  left: 90%;
-  width: 4vh;
-  height: 4vh;
-  animation: recieve 4s linear forwards;
+  padding: 0 0 6rem 0;
 }
