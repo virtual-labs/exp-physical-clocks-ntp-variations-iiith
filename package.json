@@ -1,7 +1,7 @@
 {
   "name": "exp-physical-clocks-ntp-variations-iiith",
-  "version": "0.0.5",
-  "description": "<div align=\"center\">\r <img src=\"experiment/images/iiith-logo.png\" width=\"25%\">\r </div>",
+  "version": "0.0.6",
+  "description": "Physical Clocks, NTP, and variations",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

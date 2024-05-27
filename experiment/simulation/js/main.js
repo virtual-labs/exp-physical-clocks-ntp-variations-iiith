@@ -11,7 +11,7 @@ const PAUSE_AUDIO       = document.querySelector('#pause-audio');
 const ADJUST_AUDIO      = document.querySelector('#adjust-audio');
 const SYNCHRONIZE_AUDIO = document.querySelector('#synchronize-audio');
 const SEND_AUDIO        = document.querySelector('#send-audio');
-const BACKGROUND_IMG    = 'https://i.imgur.com/XTXWSxs.jpeg';
+const BACKGROUND_IMG    = './images/background.jpeg';
 const PACKET_IMG        = './images/packet-64.png';
 const PARAMETERS = {
   // Network and Simulation Parameters.
