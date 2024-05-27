@@ -1,12 +1,7 @@
 # Generated files
-.build/
-.docs/
-coverage/
-*.d.ts
-*.map
-example.js
-index.js
-index.?js
+build/
+plugins/
+
 
 # Logs
 logs
