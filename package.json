@@ -1,0 +1,15 @@
+{
+  "name": "exp-physical-clocks-ntp-variations-iiith",
+  "version": "0.0.1",
+  "description": "<div align=\"center\">\r <img src=\"experiment/images/iiith-logo.png\" width=\"25%\">\r </div>",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "wolfram77@gmail.com",
+  "license": "MIT",
+  "dependencies": {
+    "@virtual-labs/buildexp": "^1.0.5"
+  }
+}
