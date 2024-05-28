@@ -1,6 +1,6 @@
 {
   "name": "exp-physical-clocks-ntp-variations-iiith",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Physical Clocks, NTP, and variations",
   "main": "index.js",
   "scripts": {
