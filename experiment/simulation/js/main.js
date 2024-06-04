@@ -133,6 +133,7 @@ function updateSimulation(timestamp) {
       ++s.serverSent;
     }
     if (s.time >= m.clientRecieveTime && !m.hasClientRecieved) {
+      m.clientRecordedRecieveTime = s.clientTime;
       m.hasClientRecieved = true;
       ++s.clientRecieved;
     }
@@ -141,7 +142,7 @@ function updateSimulation(timestamp) {
   if (s.clientTime >= s.lastSyncTime   + p.clientSyncInterval &&
       s.clientTime <  s.lastSyncTime   + p.clientSyncInterval + p.clientSyncPeriod &&
       s.clientTime >= s.lastPacketTime + p.clientPacketInterval) {
-    packets.push(createPacket(++s.clientSent, s.time));
+    packets.push(createPacket(++s.clientSent, s.time, s.clientTime));
     s.lastPacketTime = s.clientTime;
   }
   // Sync the client with the server, if necessary.
@@ -201,10 +202,10 @@ function syncClient() {
     packets[j] = m;  // Remove processed packets.
     var isRecieved = s.time >= m.clientRecieveTime;
     if (!isRecieved) { ++j; continue; }
-    var t0 = m.clientSendTime;
+    var t0 = m.clientRecordedSendTime;
     var t1 = m.serverRecieveTime;
     var t2 = m.serverSendTime;
-    var t3 = m.clientRecieveTime;
+    var t3 = m.clientRecordedRecieveTime;
     var roundTrip  = (t3 - t0)   - (t2 - t1);
     var timeOffset = (t1 + t2)/2 - (t0 + t3)/2;
     entries.push({roundTrip, timeOffset});
@@ -226,16 +227,16 @@ function syncClient() {
   roundTrip  /= entries.length;
   timeOffset /= entries.length;
   // Update the client time.
-  s.clientTime  -= timeOffset;
+  s.clientTime  += timeOffset;
   s.clientError  = roundTrip/2 + p.serverError;
   // Record the round trip time and time offset.
-  records.push({x: p.networkTrip, y: s.clientTime - s.time});
+  records.push({x: roundTrip, y: s.clientTime - s.time});
   drawPlot();
 }
 
 
 /** Create a new packet. */
-function createPacket(id, time) {
+function createPacket(id, time, clientTime) {
   var p = parameters;
   var tripPeriod = p.networkTrip + Math.random() * p.networkTripVariation;
   var sendPeriod = tripPeriod/2  + Math.random() * p.networkAsymmetry;
@@ -245,6 +246,8 @@ function createPacket(id, time) {
     serverRecieveTime: time + sendPeriod,
     serverSendTime:    time + sendPeriod + p.serverResponseDelay,
     clientRecieveTime: time + tripPeriod + p.serverResponseDelay,
+    clientRecordedSendTime: clientTime,
+    clientRecordedRecieveTime: clientTime,
     hasServerRecieved: false,
     hasServerSent:     false,
     hasClientRecieved: false,
@@ -302,7 +305,7 @@ function onSynchronize() {
 /** Called when "Send Packet" button is clicked. */
 function onSendPacket() {
   var s = simulation;
-  packets.push(createPacket(++s.clientSent, s.time));
+  packets.push(createPacket(++s.clientSent, s.time, s.clientTime));
 }
 
 
@@ -480,8 +483,8 @@ function drawPlot() {
     },
     options: {
       scales: {
-        x: {title: {display: true, text: 'Round Trip Time (ms)'}},
-        y: {title: {display: true, text: 'Time Offset (ms)'}}
+        x: {title: {display: true, text: 'Actual Round Trip Time (ms)'}},
+        y: {title: {display: true, text: 'Time Offset after Synchronization (ms)'}}
       }
     }
   });
