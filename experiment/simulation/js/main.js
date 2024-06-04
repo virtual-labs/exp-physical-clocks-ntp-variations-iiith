@@ -5,14 +5,23 @@ const SIMULATION        = document.querySelector('#simulation canvas');
 const CONTROLS          = document.querySelector('#controls form');
 const START_SIMULATION  = document.querySelector('#start-simulation');
 const STOP_SIMILATION   = document.querySelector('#stop-simulation');
+const SELECT_EXPERIMENT = document.querySelector('#select-experiment');
+const PLOT_OFFSET       = document.querySelector('#plot-offset');
 const START_AUDIO       = document.querySelector('#start-audio');
 const STOP_AUDIO        = document.querySelector('#stop-audio');
 const PAUSE_AUDIO       = document.querySelector('#pause-audio');
 const ADJUST_AUDIO      = document.querySelector('#adjust-audio');
 const SYNCHRONIZE_AUDIO = document.querySelector('#synchronize-audio');
-const SEND_AUDIO        = document.querySelector('#send-audio');
 const BACKGROUND_IMG    = './images/background.jpeg';
 const PACKET_IMG        = './images/packet-64.png';
+
+
+
+
+// PARAMETERS
+// ----------
+
+/** Default parameters for the simulation. */
 const PARAMETERS = {
   // Network and Simulation Parameters.
   networkTrip: 100,
@@ -21,7 +30,7 @@ const PARAMETERS = {
   simulationSpeed: 10,
   // NTP Client Parameters.
   clientOffset: 10,
-  clientDriftRate: 0,
+  clientDriftRate: 100000,
   clientSyncInterval: 1000,
   clientSyncPeriod: 100,
   clientPacketInterval: 10,
@@ -32,10 +41,14 @@ const PARAMETERS = {
 
 
 
+
 // STATE
 // -----
 
+/** Parameters for the simulation. */
 var parameters = Object.assign({}, PARAMETERS);
+
+/** State of the simulation. */
 var simulation = {
   isRunning: true,
   isPaused:  false,
@@ -52,7 +65,17 @@ var simulation = {
   serverRecieved: 0,
   clientSyncs: 0,
 };
+
+/** Packets in the simulation. */
 var packets = [];
+
+/** Records of round trip time and time offset. */
+var records = [];
+
+/** Plot of time offset vs round trip time. */
+var plot = null;
+
+/** Images for the simulation. */
 var images  = {
   isLoaded: false,
   background: null,
@@ -68,8 +91,10 @@ var images  = {
 /** Main function. */
 function main() {
   CONTROLS.addEventListener('submit', onControls);
+  setTimeout(stopSimulation, 500);  // Let some rendering happen
   requestAnimationFrame(simulationLoop);
   drawButtons();
+  drawPlot();
 }
 main();
 
@@ -140,7 +165,7 @@ function resetSimulation() {
   s.time        = 0;
   s.clientTime  = p.clientOffset;
   s.clientError = 0;
-  s.lastSyncTime   = -p.clientSyncInterval * 0.9;
+  s.lastSyncTime   = -p.clientSyncInterval + p.clientSyncPeriod;
   s.lastPacketTime = -p.clientPacketInterval;
   s.clientSent = 0;
   s.serverSent = 0;
@@ -185,10 +210,12 @@ function syncClient() {
     entries.push({roundTrip, timeOffset});
   }
   // Remove outliers.
-  entries.sort((a, b) => a.timeOffset - b.timeOffset);
-  entries = entries.slice(1, -1);
-  entries.sort((a, b) => a.roundTrip - b.roundTrip);
-  entries = entries.slice(1, -1);
+  if (entries.length >= 5) {
+    entries.sort((a, b) => a.timeOffset - b.timeOffset);
+    entries = entries.slice(1, -1);
+    entries.sort((a, b) => a.roundTrip - b.roundTrip);
+    entries = entries.slice(1, -1);
+  }
   // Calculate average round trip and time offset.
   var roundTrip  = 0;
   var timeOffset = 0;
@@ -201,6 +228,9 @@ function syncClient() {
   // Update the client time.
   s.clientTime  -= timeOffset;
   s.clientError  = roundTrip/2 + p.serverError;
+  // Record the round trip time and time offset.
+  records.push({x: p.networkTrip, y: s.clientTime - s.time});
+  drawPlot();
 }
 
 
@@ -246,9 +276,92 @@ function onStartSimulation() {
 /** Called when "Stop Simulation" button is clicked. */
 function onStopSimulation() {
   STOP_AUDIO.play();
+  stopSimulation();
+}
+
+
+/** Stop the current simulation. */
+function stopSimulation() {
   resetSimulation();
   renderSimulation();
   drawButtons();
+}
+
+
+/** Called when "Synchronize Now" button is clicked. */
+function onSynchronize() {
+  SYNCHRONIZE_AUDIO.play();
+  var s = simulation;
+  var p = parameters;
+  // Force a sync by setting the last sync time to a time in the past.
+  s.lastSyncTime   = s.clientTime - p.clientSyncInterval;
+  s.lastPacketTime = s.clientTime - p.clientPacketInterval;
+}
+
+
+/** Called when "Send Packet" button is clicked. */
+function onSendPacket() {
+  var s = simulation;
+  packets.push(createPacket(++s.clientSent, s.time));
+}
+
+
+/** Called when an experiment is selected. */
+function onSelectExperiment() {
+  var p = parameters;
+  ADJUST_AUDIO.play();
+  switch (SELECT_EXPERIMENT.value) {
+    case 'lan-x': Object.assign(p, defineParameters(11, 0, 0.1)); break;
+    case 'lan-n': Object.assign(p, defineParameters(13, 0, 0.3)); break;
+    case 'lan-a': Object.assign(p, defineParameters(11, 0.2, 0.1)); break;
+    case 'man-n': Object.assign(p, defineParameters(65, 0, 0.3)); break;
+    case 'man-a': Object.assign(p, defineParameters(55, 0.2, 0.1)); break;
+    case 'wan-n': Object.assign(p, defineParameters(130, 0, 0.3)); break;
+    case 'wan-a': Object.assign(p, defineParameters(110, 0.2, 0.1)); break;
+    case 'gan-n': Object.assign(p, defineParameters(650, 0, 0.3)); break;
+    case 'gan-a': Object.assign(p, defineParameters(550, 0.2, 0.1)); break;
+    default: Object.assign(p, PARAMETERS); break;
+  }
+  stopSimulation();
+  drawParameters();
+}
+
+
+/** Define parameters for the simulation. */
+function defineParameters(trip, asymmetry, variation) {
+  return {
+    // Network and Simulation Parameters.
+    networkTrip: trip,
+    networkAsymmetry: asymmetry * trip,
+    networkTripVariation: variation * trip,
+    simulationSpeed: 0.1 * trip,
+    // NTP Client Parameters.
+    clientOffset: 0.2 * trip,
+    clientDriftRate: 100000,
+    clientSyncInterval: 2 * trip,
+    clientSyncPeriod: trip,
+    clientPacketInterval: 0.1 * trip,
+    // NTP Server Parameters.
+    serverError: 0,
+    serverResponseDelay: 0.1 * trip,
+  };
+}
+
+
+/** Update the paramter values in the form. */
+function drawParameters() {
+  var p = parameters;
+  CONTROLS.querySelector('input[name="network-trip"]').value            = p.networkTrip;
+  CONTROLS.querySelector('input[name="network-asymmetry"]').value       = p.networkAsymmetry;
+  CONTROLS.querySelector('input[name="network-trip-variation"]').value  = p.networkTripVariation;
+  CONTROLS.querySelector('input[name="simulation-speed"]').value        = p.simulationSpeed;
+  CONTROLS.querySelector('input[name="client-offset"]').value           = p.clientOffset;
+  CONTROLS.querySelector('input[name="client-drift-rate"]').value       = p.clientDriftRate;
+  CONTROLS.querySelector('input[name="client-sync-interval"]').value    = p.clientSyncInterval;
+  CONTROLS.querySelector('input[name="client-sync-period"]').value      = p.clientSyncPeriod;
+  CONTROLS.querySelector('input[name="client-packet-interval"]').value  = p.clientPacketInterval;
+  CONTROLS.querySelector('input[name="server-error"]').value            = p.serverError;
+  CONTROLS.querySelector('input[name="server-response-delay"]').value   = p.serverResponseDelay;
 }
 
 
@@ -270,28 +383,18 @@ function adjustParameters() {
   p.clientOffset          = parseFloat(data.get('client-offset'))           || PARAMETERS.clientOffset;
   p.clientDriftRate       = parseFloat(data.get('client-drift-rate'))       || PARAMETERS.clientDriftRate;
   p.clientSyncInterval    = parseFloat(data.get('client-sync-interval'))    || PARAMETERS.clientSyncInterval;
-  p.clientSyncPeriod      = parseFloat(data.get('client-sync-packets'))     || PARAMETERS.clientSyncPeriod;
+  p.clientSyncPeriod      = parseFloat(data.get('client-sync-period'))      || PARAMETERS.clientSyncPeriod;
   p.clientPacketInterval  = parseFloat(data.get('client-packet-interval'))  || PARAMETERS.clientPacketInterval;
   p.serverError           = parseFloat(data.get('server-error'))            || PARAMETERS.serverError;
   p.serverResponseDelay   = parseFloat(data.get('server-response-delay'))   || PARAMETERS.serverResponseDelay;
 }
 
 
-/** Called when "Synchronize Now" button is clicked. */
-function onSynchronize() {
-  SYNCHRONIZE_AUDIO.play();
-  var s = simulation;
-  var p = parameters;
-  // Force a sync by setting the last sync time to a time in the past.
-  s.lastSyncTime   = s.clientTime - p.clientSyncInterval;
-  s.lastPacketTime = s.clientTime - p.clientPacketInterval;
-}
-
-
-/** Called when "Send Packet" button is clicked. */
-function onSendPacket() {
-  var s = simulation;
-  packets.push(createPacket(++s.clientSent, s.time));
+/** Called when "Clear Plot" button is clicked. */
+function onClearPlot() {
+  STOP_AUDIO.play();
+  records = [];
+  drawPlot();
 }
 
 
@@ -360,6 +463,30 @@ function drawButtons() {
   var s = simulation;
   START_SIMULATION.textContent = !s.isRunning? 'Start Simulation' : s.isPaused? 'Resume Simulation' : 'Pause Simulation';
   STOP_SIMILATION.disabled     = !s.isRunning;
+}
+
+
+/** Draw the plot showing time offset vs round trip time. */
+function drawPlot() {
+  plot = plot || new Chart(PLOT_OFFSET, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Time Offset',
+        data: records,
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+      }]
+    },
+    options: {
+      scales: {
+        x: {title: {display: true, text: 'Round Trip Time (ms)'}},
+        y: {title: {display: true, text: 'Time Offset (ms)'}}
+      }
+    }
+  });
+  plot.data.datasets[0].data = records;
+  plot.update();
 }
 
 

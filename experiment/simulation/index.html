@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/barecss@1.1.1/css/bare.min.css">
 <link rel="stylesheet" href="./css/main.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <title>NTP Simulation</title>
 </head>
 <body>
@@ -22,52 +23,75 @@
 <section id="controls">
 <form>
   <div id="buttons">
-    <button id="start-simulation" primary onclick="onStartSimulation()">Pause Simulation</button>
-    <button id="stop-simulation" onclick="onStopSimulation()">Stop Simulation</button>
-    <button id="adjust-parameters" onclick="onAdjustParameters()">Adjust Parameters</button>
-    <button id="synchronize" onclick="onSynchronize()">Synchronize Now</button>
-    <button id="send-packet" onclick="onSendPacket()">Send Packet</button>
+    <grid>
+      <div col="1/4"><button full id="start-simulation" primary onclick="onStartSimulation()">Pause Simulation</button></div>
+      <div col="1/4"><button full id="stop-simulation" onclick="onStopSimulation()">Stop Simulation</button></div>
+      <div col="1/4"><button full id="synchronize" onclick="onSynchronize()">Synchronize Now</button></div>
+      <div col="1/4"><button full id="send-packet" onclick="onSendPacket()">Send Packet</button></div>
+    </grid>
+    <grid>
+      <div col="2/4">
+      <select id="select-experiment" onchange="onSelectExperiment()">
+        <option disabled selected>Select an Experiment</option>
+        <option value="lan-x">Local Area Network</option>
+        <option value="lan-n">Local Area Network (noisy)</option>
+        <option value="lan-a">Local Area Network (asymmetric)</option>
+        <option value="man-n">Metropolitan Area Network (noisy)</option>
+        <option value="man-a">Metropolitan Area Network (asymmetric)</option>
+        <option value="wan-n">Wide Area Network (noisy)</option>
+        <option value="wan-a">Wide Area Network (asymmetric)</option>
+        <option value="gan-n">Globally Distributed Network (noisy)</option>
+        <option value="gan-a">Globally Distributed Network (asymmetric)</option>
+        <option value="usr-x">Custom</option>
+      </select>
+      </div>
+      <div col="1/4"><button full id="adjust-parameters" onclick="onAdjustParameters()">Adjust Parameters</button></div>
+      <div col="1/4"><button full id="clear-plot" onclick="onClearPlot()">Clear Plot</button></div>
+    </grid>
+  </div>
+  <div id="plot">
+    <canvas id="plot-offset" width="320" height="320"></canvas>
   </div>
   <grid>
     <div col="1/2">
       <h4>Network and Simulation Parameters</h4>
       <label>Round trip time (ms)</label>
-      <input type="number" name="network-trip" placeholder="100">
+      <input type="text" name="network-trip" placeholder="100">
       <label>Round trip asymmetry variation (ms)</label>
-      <input type="number" name="network-asymmetry" placeholder="20">
+      <input type="text" name="network-asymmetry" placeholder="20">
     </div>
     <div col="1/2">
       <h4>...</h4>
       <label>Round trip time variation (ms)</label>
-      <input type="number" name="network-trip-variation" placeholder="20">
+      <input type="text" name="network-trip-variation" placeholder="20">
       <label>Simulation speed (ms/s)</label>
-      <input type="number" name="simulation-speed" placeholder="10">
+      <input type="text" name="simulation-speed" placeholder="10">
     </div>
     <div col="1/2">
     <h4>NTP Client Parameters</h4>
     <label>Initial time offset of the client (ms)</label>
-    <input type="number" name="client-offset" placeholder="10">
+    <input type="text" name="client-offset" placeholder="10">
     <label>Synchronization interval (ms)</label>
-    <input type="number" name="client-sync-interval" placeholder="1000">
+    <input type="text" name="client-sync-interval" placeholder="1000">
     <label>Synchronization packet interval (ms)</label>
-    <input type="number" name="client-packet-interval" placeholder="10">
+    <input type="text" name="client-packet-interval" placeholder="10">
   </div>
   <div col="1/2">
     <h4>...</h4>
     <label>Drift rate of the client (ppm)</label>
-    <input type="number" name="client-drift-rate" placeholder="0">
+    <input type="text" name="client-drift-rate" placeholder="0">
     <label>Synchronization period (ms)</label>
-    <input type="number" name="client-sync-period" placeholder="100">
+    <input type="text" name="client-sync-period" placeholder="100">
   </div>
   <div col="1/2">
     <h4>NTP Server Parameters</h4>
     <label>Time error of the server (ms)</label>
-    <input type="number" name="server-error" placeholder="0">
+    <input type="text" name="server-error" placeholder="0">
   </div>
   <div col="1/2">
     <h4>...</h4>
     <label>Delay at server before responding to a request (ms)</label>
-    <input type="number" name="server-response-delay" placeholder="10">
+    <input type="text" name="server-response-delay" placeholder="10">
   </div>
   </grid>
 </form>
