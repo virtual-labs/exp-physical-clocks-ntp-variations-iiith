@@ -53,7 +53,7 @@
       "difficulty": "beginner"
     },
     {
-      "question": "In the context of NTP, what is the significance of the Marzullo algorithm?",
+      "question": "In the context of NTP, what is the significance of the 'intersection algorithm'?",
       "answers": {
         "a": "It improves the encryption of time packets",
         "b": "It helps in selecting the best time source from multiple servers",
@@ -61,10 +61,10 @@
         "d": "It measures the delay of time packets"
       },
       "explanations": {
-        "a": "Incorrect: The Marzullo algorithm is not related to encryption.",
-        "b": "Correct: The Marzullo algorithm is used in NTP to select the best time source when multiple servers provide time data.",
-        "c": "Incorrect: The Marzullo algorithm does not compress data.",
-        "d": "Incorrect: The Marzullo algorithm is not used to measure delay."
+        "a": "Incorrect: The 'intersection algorithm' is not related to encryption.",
+        "b": "Correct: The 'intersection algorithm' is used in NTP to select the best time source when multiple servers provide time data.",
+        "c": "Incorrect: The 'intersection algorithm' does not compress data.",
+        "d": "Incorrect: The 'intersection algorithm' is not used to measure delay."
       },
       "correctAnswer": "b",
       "difficulty": "beginner"

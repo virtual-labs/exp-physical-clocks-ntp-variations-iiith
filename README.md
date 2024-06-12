@@ -1,5 +1,3 @@
-## Introduction
-
 <div align="center">
 <img src="experiment/images/iiith-logo.png" width="25%">
 </div>
