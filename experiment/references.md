@@ -27,3 +27,4 @@
 
 - [A diagram showing the relationships between the various levels of NTP servers. The blue numbers are the stratum numbers; yellow arrows show a direct connection, such as RS-232, while red arrows show a network connection. | Benjamin D. Esham (bdesham)](https://en.wikipedia.org/wiki/Network_Time_Protocol#/media/File:Network_Time_Protocol_servers_and_clients.svg)
 - [Round-trip delay time δ | Maxiantor](https://en.wikipedia.org/wiki/Network_Time_Protocol#/media/File:NTP-Algorithm.svg)
+- [What is NTP? Network Time Protocol Overview - study-ccna.com](https://study-ccna.com/ntp-network-time-protocol/)

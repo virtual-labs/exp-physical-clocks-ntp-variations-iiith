@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/barecss@1.1.1/css/bare.min.css">
 <link rel="stylesheet" href="./css/main.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 <title>NTP Simulation</title>
 </head>
 <body>
@@ -90,7 +91,7 @@
   </div>
   <div col="1/2">
     <h4>...</h4>
-    <label>Delay at server before responding to a request (ms)</label>
+    <label>Max server delay before responding to request (ms)</label>
     <input type="text" name="server-response-delay" placeholder="10">
   </div>
   </grid>

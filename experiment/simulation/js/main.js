@@ -90,6 +90,7 @@ var images  = {
 
 /** Main function. */
 function main() {
+  Chart.register(ChartDataLabels);  // Enable chart data labels
   CONTROLS.addEventListener('submit', onControls);
   setTimeout(stopSimulation, 500);  // Let some rendering happen
   requestAnimationFrame(simulationLoop);
@@ -230,22 +231,26 @@ function syncClient() {
   s.clientTime  += timeOffset;
   s.clientError  = roundTrip/2 + p.serverError;
   // Record the round trip time and time offset.
-  records.push({x: roundTrip, y: s.clientTime - s.time});
+  records.push({x: roundTrip, y: s.clientTime - s.time, syncId: s.clientSyncs});
   drawPlot();
 }
 
 
 /** Create a new packet. */
 function createPacket(id, time, clientTime) {
-  var p = parameters;
-  var tripPeriod = p.networkTrip + Math.random() * p.networkTripVariation;
-  var sendPeriod = tripPeriod/2  + Math.random() * p.networkAsymmetry;
+  var p  = parameters;
+  var rs = Math.random();
+  var rt = Math.random() - 0.5;
+  var ra = Math.random() - 0.5;
+  var respPeriod = Math.max(rs*p.serverResponseDelay, 0);
+  var tripPeriod = Math.max(p.networkTrip + rt*p.networkTripVariation, 0.1*p.networkTrip + respPeriod);
+  var sendPeriod = Math.max((tripPeriod - respPeriod)/2 + ra*p.networkAsymmetry, 0.05*p.networkTrip);
   return {
     id: id,
     clientSendTime:    time,
     serverRecieveTime: time + sendPeriod,
-    serverSendTime:    time + sendPeriod + p.serverResponseDelay,
-    clientRecieveTime: time + tripPeriod + p.serverResponseDelay,
+    serverSendTime:    time + sendPeriod + respPeriod,
+    clientRecieveTime: time + tripPeriod,
     clientRecordedSendTime: clientTime,
     clientRecordedRecieveTime: clientTime,
     hasServerRecieved: false,
@@ -315,14 +320,14 @@ function onSelectExperiment() {
   ADJUST_AUDIO.play();
   switch (SELECT_EXPERIMENT.value) {
     case 'lan-x': Object.assign(p, defineParameters(11, 0, 0.1)); break;
-    case 'lan-n': Object.assign(p, defineParameters(13, 0, 0.3)); break;
-    case 'lan-a': Object.assign(p, defineParameters(11, 0.2, 0.1)); break;
-    case 'man-n': Object.assign(p, defineParameters(65, 0, 0.3)); break;
-    case 'man-a': Object.assign(p, defineParameters(55, 0.2, 0.1)); break;
-    case 'wan-n': Object.assign(p, defineParameters(130, 0, 0.3)); break;
-    case 'wan-a': Object.assign(p, defineParameters(110, 0.2, 0.1)); break;
-    case 'gan-n': Object.assign(p, defineParameters(650, 0, 0.3)); break;
-    case 'gan-a': Object.assign(p, defineParameters(550, 0.2, 0.1)); break;
+    case 'lan-n': Object.assign(p, defineParameters(13, 0, 0.6)); break;
+    case 'lan-a': Object.assign(p, defineParameters(11, 0.4, 0.1)); break;
+    case 'man-n': Object.assign(p, defineParameters(65, 0, 0.6)); break;
+    case 'man-a': Object.assign(p, defineParameters(55, 0.4, 0.1)); break;
+    case 'wan-n': Object.assign(p, defineParameters(130, 0, 0.6)); break;
+    case 'wan-a': Object.assign(p, defineParameters(110, 0.4, 0.1)); break;
+    case 'gan-n': Object.assign(p, defineParameters(650, 0, 0.6)); break;
+    case 'gan-a': Object.assign(p, defineParameters(550, 0.4, 0.1)); break;
     default: Object.assign(p, PARAMETERS); break;
   }
   stopSimulation();
@@ -339,7 +344,7 @@ function defineParameters(trip, asymmetry, variation) {
     networkTripVariation: variation * trip,
     simulationSpeed: 0.1 * trip,
     // NTP Client Parameters.
-    clientOffset: 0.2 * trip,
+    clientOffset: 0.4 * trip,
     clientDriftRate: 100000,
     clientSyncInterval: 2 * trip,
     clientSyncPeriod: trip,
@@ -379,17 +384,24 @@ function onAdjustParameters() {
 function adjustParameters() {
   var p    = parameters;
   var data = new FormData(CONTROLS);
-  p.networkTrip           = parseFloat(data.get('network-trip'))            || PARAMETERS.networkTrip;
-  p.networkAsymmetry      = parseFloat(data.get('network-asymmetry'))       || PARAMETERS.networkAsymmetry;
-  p.networkTripVariation  = parseFloat(data.get('network-trip-variation'))  || PARAMETERS.networkTripVariation;
-  p.simulationSpeed       = parseFloat(data.get('simulation-speed'))        || PARAMETERS.simulationSpeed;
-  p.clientOffset          = parseFloat(data.get('client-offset'))           || PARAMETERS.clientOffset;
-  p.clientDriftRate       = parseFloat(data.get('client-drift-rate'))       || PARAMETERS.clientDriftRate;
-  p.clientSyncInterval    = parseFloat(data.get('client-sync-interval'))    || PARAMETERS.clientSyncInterval;
-  p.clientSyncPeriod      = parseFloat(data.get('client-sync-period'))      || PARAMETERS.clientSyncPeriod;
-  p.clientPacketInterval  = parseFloat(data.get('client-packet-interval'))  || PARAMETERS.clientPacketInterval;
-  p.serverError           = parseFloat(data.get('server-error'))            || PARAMETERS.serverError;
-  p.serverResponseDelay   = parseFloat(data.get('server-response-delay'))   || PARAMETERS.serverResponseDelay;
+  formNumber(data, 'network-trip',           x => p.networkTrip           = x);
+  formNumber(data, 'network-asymmetry',      x => p.networkAsymmetry      = x);
+  formNumber(data, 'network-trip-variation', x => p.networkTripVariation  = x);
+  formNumber(data, 'simulation-speed',       x => p.simulationSpeed       = x);
+  formNumber(data, 'client-offset',          x => p.clientOffset          = x);
+  formNumber(data, 'client-drift-rate',      x => p.clientDriftRate       = x);
+  formNumber(data, 'client-sync-interval',   x => p.clientSyncInterval    = x);
+  formNumber(data, 'client-sync-period',     x => p.clientSyncPeriod      = x);
+  formNumber(data, 'client-packet-interval', x => p.clientPacketInterval  = x);
+  formNumber(data, 'server-error',           x => p.serverError           = x);
+  formNumber(data, 'server-response-delay',  x => p.serverResponseDelay   = x);
+}
+
+
+/** Process a form number input. */
+function formNumber(data, key, fn) {
+  var x = parseFloat(data.get(key));
+  if (!Number.isNaN(x)) fn(x);
 }
 
 
@@ -485,6 +497,13 @@ function drawPlot() {
       scales: {
         x: {title: {display: true, text: 'Actual Round Trip Time (ms)'}},
         y: {title: {display: true, text: 'Time Offset after Synchronization (ms)'}}
+      },
+      plugins: {
+        datalabels: {
+          align: 'end',
+          anchor: 'end',
+          formatter: (value, context) => `Sync ${value.syncId + 1}`,
+        }
       }
     }
   });
